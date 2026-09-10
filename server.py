@@ -1,37 +1,41 @@
 from flask import Flask, request, render_template
-import smtplib, socket
+import smtplib
+import socket
+import os
 
 app = Flask(__name__)
 
-def spammer(toAddr):
-    toaddrs = [toAddr]
-    fromaddrs = "adam.poodleschool.founder@gmail.com"
-    message = "Hi, I'm requesting you ."
+GMAIL_USER = os.environ["GMAIL_USER"]
+GMAIL_PASSWORD = os.environ["GMAIL_PASSWORD"]
 
-    numTimes = 10
+
+def spammer(to_addr):
+    from_addr = GMAIL_USER
+    message = "Hi, I'm requesting you ."
+    num_times = 10
 
     with smtplib.SMTP("smtp.gmail.com", 587) as smtpserver:
-      smtpserver.ehlo()
-      smtpserver.starttls()
-      smtpserver.ehlo()
-      smtpserver.login("adam.poodleschool.founder@gmail.com", "zlnzowjgeoalhwcj")
-      for i in range(numTimes):
-        smtpserver.sendmail(fromaddrs, toaddrs, message)
-        print(i)
+        smtpserver.ehlo()
+        smtpserver.starttls()
+        smtpserver.ehlo()
+        smtpserver.login(GMAIL_USER, GMAIL_PASSWORD)
+
+        for i in range(num_times):
+            smtpserver.sendmail(from_addr, [to_addr], message)
+            print(f"Sent email {i + 1}/{num_times}")
 
     print("Done!")
+
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
+
 @app.route("/test-smtp")
 def test_smtp():
-    import socket
-
     results = {}
 
-    # Test DNS
     try:
         addresses = socket.getaddrinfo(
             "smtp.gmail.com",
@@ -44,26 +48,24 @@ def test_smtp():
             (x[4][0], x[0])
             for x in addresses
         })
+
     except Exception as e:
         results["dns_error"] = f"{type(e).__name__}: {e}"
 
-    # Test SMTP ports + HTTPS
     for host, port in [
         ("smtp.gmail.com", 465),
         ("smtp.gmail.com", 587),
         ("google.com", 443),
     ]:
         try:
-            s = socket.create_connection(
-                (host, port),
-                timeout=10
-            )
+            s = socket.create_connection((host, port), timeout=10)
             s.close()
             results[f"{host}:{port}"] = "CONNECTED"
         except Exception as e:
             results[f"{host}:{port}"] = f"{type(e).__name__}: {e}"
 
     return results
+
 
 @app.route("/send", methods=["POST"])
 def send():
