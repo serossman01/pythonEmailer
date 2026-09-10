@@ -1,12 +1,12 @@
 from flask import Flask, request, render_template
 import smtplib
 import socket
-import os
 
 app = Flask(__name__)
 
-GMAIL_USER = os.environ["GMAIL_USER"]
-GMAIL_PASSWORD = os.environ["GMAIL_PASSWORD"]
+GMAIL_USER = "adam.poodleschool.founder@gmail.com"
+GMAIL_PASSWORD = "zlnzowjgeoalhwcj"
+
 
 
 def spammer(to_addr):
